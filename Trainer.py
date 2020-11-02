@@ -1,7 +1,7 @@
 from enum import Enum,unique
 from torch.utils.data import DataLoader
 import torch
-from tqdm.notebook import tqdm
+from tqdm import tqdm
 
 @unique
 class TrainState(Enum):
@@ -37,12 +37,14 @@ class Trainer():
         return correct / float(source.shape[0])
 
     def fit(self):
+        print("\n===================train start===================")
+        print(f'==================={self.models["hw2Model"].__class__.__name__}===================')
         for _ in range(self.current_epoch,self.total_epoch):
             loss, acc = self.run_epoch(self.dataloader_train,TrainState.TRAIN)
             self.current_epoch += 1
         with torch.no_grad():
             test_loss,test_acc = self.run_epoch(self.dataloader_test,TrainState.TEST)
-        print(f'test_loss={test_loss:.5f}, test_acc={test_acc * 100:.2f}%')
+        print(f'{self.models["hw2Model"].__class__.__name__}: test_loss={test_loss:.5f}, test_acc={test_acc * 100:.2f}%')
 
     def run_epoch(self, dataloader: DataLoader, train_state:TrainState):
         if train_state == TrainState.TRAIN:
