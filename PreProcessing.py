@@ -4,6 +4,7 @@ from tqdm import tqdm
 import random
 import librosa
 import math
+import pickle
 from musicnn.extractor import extractor
 
 class Preprocessing():
@@ -18,6 +19,7 @@ class Preprocessing():
         self.train_path_list = self.load_data_path(os.path.join(self.file_list_path,'split/train.txt'))
         self.test_path_list = self.load_data_path(os.path.join(self.file_list_path,'split/test.txt'))
         self.valid_ratio = 0.1
+        self.chunk_sec = 4
 
     def load_data_path(self,path):
         with open(path) as f:
@@ -74,3 +76,52 @@ class Preprocessing():
             else:
                 valid_path_out_list.append(path_out)
         return train_path_out_list,valid_path_out_list,test_path_out_list
+    
+    def preprocess_chunk(self,musiccnn=False):
+        debug_message = "preprocess chunk" if musiccnn == False else "musiccnn preprocess chunk"
+        print(f'{debug_message} start')
+        feature_name = f'/spec_chunk{self.chunk_sec}' if musiccnn == False else f'/embed_chunk{self.chunk_sec}'
+        train_dir = self.file_list_path + feature_name +"/train"
+        test_dir = self.file_list_path + feature_name +"/test"
+        os.makedirs(train_dir, exist_ok=True)
+        os.makedirs(test_dir,exist_ok=True)
+        self.preprocess_chunk_for_given_path(train=True,save_path=train_dir,musiccnn=musiccnn)
+        self.preprocess_chunk_for_given_path(train=False,save_path=test_dir,musiccnn=musiccnn)
+    
+    def preprocess_chunk_for_given_path(self,train:bool,save_path:str,musiccnn=False):
+        path_list = self.train_path_list if train else self.test_path_list
+        for path_in in tqdm(path_list):
+            genre = path_in.split('/')[0]
+            file_name = path_in.split('/')[1].replace(".wav","")
+            if os.path.isfile(os.path.join(save_path,f'{file_name}_0.pkl')):
+                print(f'pickle data of {file_name} already exists')
+                continue
+            print("debug")
+            self.preprocess_chunk_save(audio_path=f'{self.file_list_path}/wav/{path_in}',genre=genre,
+                                                    save_file_path=os.path.join(save_path,f'{file_name}'),musiccnn=musiccnn)
+    
+    def preprocess_chunk_save(self,audio_path,genre:str,save_file_path,musiccnn=False):
+        signal, _ = librosa.load(audio_path,sr=self.sampling_rate)
+        pickle_idx = 0
+        for start_idx in range(0,len(signal),self.sampling_rate*self.chunk_sec):
+            end_idx = start_idx + self.sampling_rate*self.chunk_sec
+            music_chunk = signal[start_idx:end_idx]
+            if music_chunk.size != (self.sampling_rate*self.chunk_sec):
+                continue
+            feature = self.feature_extraction(signal,musiccnn)
+            save_file_name = save_file_path+f'_{pickle_idx}.pkl'
+            print(f'Saving: {save_file_name}')
+            with open (save_file_name,'wb') as writing_file:
+                pickle.dump({"feature":feature,"genre":genre},writing_file)
+            print("debug")
+            pickle_idx += 1
+    
+    def feature_extraction(self,signal,musiccnn=False):
+        melspec = librosa.feature.melspectrogram(signal,sr=self.sampling_rate,n_fft=self.number_fft,
+                                                    hop_length=self.hop_length,n_mels=self.number_mel)
+        melspec = librosa.power_to_db(melspec)
+        melspec = melspec.astype('float32')
+        return melspec
+        
+
+        

@@ -6,6 +6,7 @@ from tqdm import tqdm
 @unique
 class TrainState(Enum):
     TRAIN = 0
+    VALID = 1
     TEST = 2
 
 class Trainer():
@@ -24,10 +25,16 @@ class Trainer():
         print(f'Optimizer: {self.optimizer}')
         print(f'Device: {self.optimizer}')
         self.dataloader_train = None
+        self.dataloader_valid = None
         self.dataloader_test = None
+        self.model_save_path = f'./ModelSave/best_{self.models["hw2Model"].__class__.__name__}.pth'
+        self.best_model_epoch = 0
+        self.best_model_loss = 5000
+        self.best_model_accu = 0
 
-    def set_dataloader(self,train,test):
+    def set_dataloader(self,train,valid,test):
         self.dataloader_train = train
+        self.dataloader_valid = valid
         self.dataloader_test = test
 
     def accuracy(self,source,target):
@@ -41,8 +48,13 @@ class Trainer():
         print(f'==================={self.models["hw2Model"].__class__.__name__}===================')
         for _ in range(self.current_epoch,self.total_epoch):
             loss, acc = self.run_epoch(self.dataloader_train,TrainState.TRAIN)
+            with torch.no_grad():
+                valid_loss, valid_acc = self.run_epoch(self.dataloader_valid,TrainState.VALID)
+                self.save_best_model(current_loss=valid_loss,current_accu=valid_acc)
             self.current_epoch += 1
         with torch.no_grad():
+            best_model_load = torch.load(self.model_save_path)
+            self.models["hw2Model"].load_state_dict(best_model_load)
             test_loss,test_acc = self.run_epoch(self.dataloader_test,TrainState.TEST)
         print(f'{self.models["hw2Model"].__class__.__name__}: test_loss={test_loss:.5f}, test_acc={test_acc * 100:.2f}%')
 
@@ -52,7 +64,7 @@ class Trainer():
             desc_message = f'Epoch {self.current_epoch:02}'
         else:
             self.models["hw2Model"].eval()
-            desc_message = f'Test'
+            desc_message = f'Test {self.best_model_epoch} epoch model' if train_state != TrainState.VALID else f'Valid'
 
         epoch_loss = 0
         epoch_acc = 0
@@ -78,6 +90,14 @@ class Trainer():
             pbar.set_postfix({'loss': epoch_loss / num_data,
                               'acc': epoch_acc / num_data})
         return (epoch_loss / num_data),(epoch_acc / num_data)
+
+    def save_best_model(self, current_loss, current_accu):
+        if current_loss < self.best_model_loss and current_accu > self.best_model_accu:
+            print("save current best model")
+            self.best_model_epoch = self.current_epoch
+            self.best_model_loss = current_loss
+            self.best_model_accu = current_accu
+            torch.save(self.models["hw2Model"].state_dict(),self.model_save_path)
 
 
 

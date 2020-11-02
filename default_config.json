@@ -1,5 +1,5 @@
 {   "data_path": "./gtzan",
-    "app_mode":0,
+    "app_mode":-1,
     "batch_size": 4,
-    "question_num": 2
+    "question_num": 1
 }
