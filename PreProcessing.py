@@ -1,11 +1,13 @@
 import os
 import numpy as np
 from tqdm import tqdm
+import random
 import librosa
+import math
 from musicnn.extractor import extractor
 
 class Preprocessing():
-    def __init__(self,file_list_path):
+    def __init__(self,file_list_path,valid_ration= 0.1):
         self.file_list_path = file_list_path
         self.sampling_rate = 16000
         self.hop_length = 512
@@ -15,6 +17,7 @@ class Preprocessing():
         self.genres_dict = {genre_name: label_num for label_num, genre_name in enumerate(self.genres)}
         self.train_path_list = self.load_data_path(os.path.join(self.file_list_path,'split/train.txt'))
         self.test_path_list = self.load_data_path(os.path.join(self.file_list_path,'split/test.txt'))
+        self.valid_ratio = 0.1
 
     def load_data_path(self,path):
         with open(path) as f:
@@ -50,18 +53,24 @@ class Preprocessing():
         print(f'{debug_message} finish')
         return path_out_list
     
-    def get_train_path_list(self,musiccnn=False):
-        path_out_list = []
-        feature_name = '/spec/' if musiccnn == False else '/embed/'
-        for path_in in tqdm(self.train_path_list):
-            path_out = self.file_list_path + feature_name + path_in.replace('.wav','.npy')
-            path_out_list.append(path_out)
-        return path_out_list
-
-    def get_test_path_list(self,musiccnn=False):
-        path_out_list = []
+    def get_path_list(self,musiccnn=False):
+        train_path_out_list = []
+        valid_path_out_list = []
+        test_path_out_list = []
+        number_of_train_valid = len(self.train_path_list)
+        train_valid_indicies = list(range(number_of_train_valid))
+        random.shuffle(train_valid_indicies)
+        train_idc = train_valid_indicies[math.floor(number_of_train_valid*self.valid_ratio):]
+        
         feature_name = '/spec/' if musiccnn == False else '/embed/'
         for path_in in tqdm(self.test_path_list):
             path_out = self.file_list_path + feature_name + path_in.replace('.wav','.npy')
-            path_out_list.append(path_out)
-        return path_out_list
+            test_path_out_list.append(path_out)
+
+        for i,path_in in enumerate(tqdm(self.train_path_list)):
+            path_out = self.file_list_path + feature_name + path_in.replace('.wav','.npy')
+            if i in train_idc:
+                train_path_out_list.append(path_out)
+            else:
+                valid_path_out_list.append(path_out)
+        return train_path_out_list,valid_path_out_list,test_path_out_list
