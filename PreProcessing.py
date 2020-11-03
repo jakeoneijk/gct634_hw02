@@ -108,7 +108,7 @@ class Preprocessing():
             music_chunk = signal[start_idx:end_idx]
             if music_chunk.size != (self.sampling_rate*self.chunk_sec):
                 continue
-            feature = self.feature_extraction(signal,musiccnn)
+            feature = self.feature_extraction(music_chunk,musiccnn)
             save_file_name = save_file_path+f'_{pickle_idx}.pkl'
             print(f'Saving: {save_file_name}')
             with open (save_file_name,'wb') as writing_file:

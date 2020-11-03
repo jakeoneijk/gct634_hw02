@@ -1,6 +1,8 @@
 from PreProcessing import Preprocessing
 from Dataset.SpecDataset import SpecDataset
 from Dataset.EmbedDataset import EmbedDataset
+from Dataset.ChunkDataset import ChunkDataset
+from DataloaderBuilderChunk import DataloaderBuilderChunk
 from Model.HW2Model import HW2Model
 from Model.HW2Q1Model import HW2Q1Model
 from Model.HW2Q2Model import HW2Q2Model
@@ -70,6 +72,17 @@ class AppController():
             embed_size = dataset_train[0][0].shape[0]
             self.train(model=HW2Q2Model(feature_size=embed_size, num_genres=len(self.preprocessor.genres)), train_dataloader=loader_train,valid_dataloader=loader_valid,test_dataloader=loader_test)
             print("train end")
+
+        elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.1):
+            chunk_sec = 4
+            print(f"use spec chunk {chunk_sec} dataset")
+            dataset_train = ChunkDataset(f'{self.data_path}/spec_chunk{chunk_sec}/train')
+            dataset_test = ChunkDataset(f'{self.data_path}/spec_chunk{chunk_sec}/test')
+            dataloader_builder = DataloaderBuilderChunk(dataset_train,dataset_test,self.batch_size)
+            loader_train,loader_valid,loader_test = dataloader_builder.get_data_loader()
+            embed_size = dataset_train[0][0]
+            embed_size = dataset_train[1][0]
+            print("debug")
 
     def make_dataloader(self,train_dataset,valid_dataset,test_dataset):
         num_workers = os.cpu_count()
