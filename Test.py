@@ -1,5 +1,7 @@
 from Model.HW2Model import HW2Model
 from Model.HW2Q1Model import HW2Q1Model
+from Model.HW2Q31Model import HW2Q31Model
+from Model.HW2Q32ResnetModel import HW2Q32ResnetModel
 import torch
 class TestController():
     def __init__(self):
@@ -9,6 +11,10 @@ class TestController():
         self.test_input = {"HW2Model_input":torch.randn((self.test_batch_size,96,936))}
         self.models["HW2Q1Model"] = HW2Q1Model(num_mels=96, num_genres=8)
         self.test_input["HW2Q1Model_input"] = torch.randn((self.test_batch_size, 96, 936))
+        self.models["HW2Q31Model"] = HW2Q31Model(num_mels=96, num_genres=8)
+        self.test_input["HW2Q31Model_input"] = torch.randn((self.test_batch_size, 96, 157))
+        self.models["HW2Q32ResnetModel"] = HW2Q32ResnetModel(num_genres=8)
+        self.test_input["HW2Q32ResnetModel_input"] = torch.randn((self.test_batch_size, 96, 157))
 
     def model_size_test(self):
         print("model size test")

@@ -1,11 +1,17 @@
 from PreProcessing import Preprocessing
+
 from Dataset.SpecDataset import SpecDataset
 from Dataset.EmbedDataset import EmbedDataset
 from Dataset.ChunkDataset import ChunkDataset
+from Dataset.ChunkTestDataset import ChunkTestDataset
+from Dataset.ChunkEmbededDataset import ChunkEmbededDataset
+
 from DataloaderBuilderChunk import DataloaderBuilderChunk
 from Model.HW2Model import HW2Model
 from Model.HW2Q1Model import HW2Q1Model
 from Model.HW2Q2Model import HW2Q2Model
+from Model.HW2Q31Model import HW2Q31Model
+from Model.HW2Q32ResnetModel import HW2Q32ResnetModel
 from Trainer import Trainer
 from enum import Enum,unique
 import torch
@@ -13,6 +19,7 @@ from torch.utils.data import DataLoader
 import argparse
 import json
 import librosa
+import numpy as np
 import os
 
 @unique 
@@ -74,15 +81,34 @@ class AppController():
             print("train end")
 
         elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.1):
-            chunk_sec = 4
+            chunk_sec = self.preprocessor.chunk_sec
             print(f"use spec chunk {chunk_sec} dataset")
-            dataset_train = ChunkDataset(f'{self.data_path}/spec_chunk{chunk_sec}/train')
-            dataset_test = ChunkDataset(f'{self.data_path}/spec_chunk{chunk_sec}/test')
+            dataset_train = ChunkDataset(f'{self.data_path}/spec_chunk{chunk_sec}/train',self.preprocessor.genres_dict)
+            dataset_test = ChunkTestDataset(f'{self.data_path}/spec_chunk{chunk_sec}/test',self.preprocessor.genres_dict)
             dataloader_builder = DataloaderBuilderChunk(dataset_train,dataset_test,self.batch_size)
             loader_train,loader_valid,loader_test = dataloader_builder.get_data_loader()
-            embed_size = dataset_train[0][0]
-            embed_size = dataset_train[1][0]
+            
+            self.train(model=HW2Q31Model(self.preprocessor.number_mel,len(self.preprocessor.genres)), train_dataloader=loader_train,valid_dataloader=loader_valid,test_dataloader=loader_test,chunk=True)
             print("debug")
+        
+        elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.2):
+            chunk_sec = self.preprocessor.chunk_sec
+            print(f"use spec chunk {chunk_sec} dataset")
+            dataset_train = ChunkDataset(f'{self.data_path}/spec_chunk{chunk_sec}/train',self.preprocessor.genres_dict)
+            dataset_test = ChunkTestDataset(f'{self.data_path}/spec_chunk{chunk_sec}/test',self.preprocessor.genres_dict)
+            dataloader_builder = DataloaderBuilderChunk(dataset_train,dataset_test,self.batch_size)
+            loader_train,loader_valid,loader_test = dataloader_builder.get_data_loader()
+            self.train(model=HW2Q32ResnetModel(len(self.preprocessor.genres)), train_dataloader=loader_train,valid_dataloader=loader_valid,test_dataloader=loader_test,chunk=True)
+            print("debug")
+        
+        elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.3):
+            chunk_sec = self.preprocessor.chunk_sec
+            print(f"use spec chunk {chunk_sec} dataset & embeded dataset")
+            dataset_train = ChunkEmbededDataset(f'{self.data_path}/spec_chunk{chunk_sec}/train',self.preprocessor.genres_dict)
+            k,l = dataset_train[0]
+            print("debug")
+            
+            
 
     def make_dataloader(self,train_dataset,valid_dataset,test_dataset):
         num_workers = os.cpu_count()
@@ -91,10 +117,10 @@ class AppController():
         loader_test = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=num_workers, drop_last=False)
         return loader_train,loader_valid,loader_test
         
-    def train(self,model,train_dataloader,valid_dataloader,test_dataloader):
+    def train(self,model,train_dataloader,valid_dataloader,test_dataloader,chunk=False):
         trainer = Trainer(model=model, device=self.device)
         trainer.set_dataloader(train=train_dataloader,valid=valid_dataloader,test=test_dataloader)
-        trainer.fit()
+        trainer.fit(chunk=chunk)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='hw2 parser')

@@ -2,6 +2,8 @@ from enum import Enum,unique
 from torch.utils.data import DataLoader
 import torch
 from tqdm import tqdm
+import os
+import numpy as np
 
 @unique
 class TrainState(Enum):
@@ -10,7 +12,7 @@ class TrainState(Enum):
     TEST = 2
 
 class Trainer():
-    def __init__(self,model,device,lr = 0.0006,momentum=0.9,total_epoch = 10, weight_decay = 0.0):
+    def __init__(self,model,device,lr = 0.0006,momentum=0.9,total_epoch = 12, weight_decay = 0.0):
         self.lr = lr
         self.momentum = momentum
         self.current_epoch = 0
@@ -43,7 +45,7 @@ class Trainer():
         correct = (source == target).sum().item()
         return correct / float(source.shape[0])
 
-    def fit(self):
+    def fit(self,chunk=False):
         print("\n===================train start===================")
         print(f'==================={self.models["hw2Model"].__class__.__name__}===================')
         for _ in range(self.current_epoch,self.total_epoch):
@@ -52,11 +54,17 @@ class Trainer():
                 valid_loss, valid_acc = self.run_epoch(self.dataloader_valid,TrainState.VALID)
                 self.save_best_model(current_loss=valid_loss,current_accu=valid_acc)
             self.current_epoch += 1
-        with torch.no_grad():
-            best_model_load = torch.load(self.model_save_path)
-            self.models["hw2Model"].load_state_dict(best_model_load)
-            test_loss,test_acc = self.run_epoch(self.dataloader_test,TrainState.TEST)
-        print(f'{self.models["hw2Model"].__class__.__name__}: test_loss={test_loss:.5f}, test_acc={test_acc * 100:.2f}%')
+
+        best_model_load = torch.load(self.model_save_path)
+        self.models["hw2Model"].load_state_dict(best_model_load)
+
+        if chunk == True:
+            with torch.no_grad():
+                test_acc = self.test_by_chunk(self.dataloader_test,TrainState.TEST)
+        else:
+            with torch.no_grad():
+                _,test_acc = self.run_epoch(self.dataloader_test,TrainState.TEST)
+        print(f'{self.models["hw2Model"].__class__.__name__}: test_acc={test_acc * 100:.2f}%')
 
     def run_epoch(self, dataloader: DataLoader, train_state:TrainState):
         if train_state == TrainState.TRAIN:
@@ -99,6 +107,23 @@ class Trainer():
             self.best_model_accu = current_accu
             torch.save(self.models["hw2Model"].state_dict(),self.model_save_path)
 
+    def test_by_chunk(self, dataloader: DataLoader, train_state:TrainState):
+        print(f'Test {self.best_model_epoch} epoch model')
+        self.models["hw2Model"].eval()
+        total_num_data = len(dataloader)
+        correct_num = 0
+        for input,label in dataloader:
+            input = input.view(input.shape[1],input.shape[2],input.shape[3])
+            input = input.to(self.device)
+            label = label.to(self.device)
+            prediction = self.models["hw2Model"](input)
+            prediction = prediction.max(1)[1].long().cpu()
+            prediction = prediction.numpy()
+            count = np.bincount(prediction)
+            prediction_label = count.argmax()
+            if label[0] == prediction_label:
+                correct_num += 1
+        return correct_num/total_num_data
 
 
 
