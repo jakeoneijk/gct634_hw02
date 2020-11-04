@@ -5,6 +5,7 @@ from Dataset.EmbedDataset import EmbedDataset
 from Dataset.ChunkDataset import ChunkDataset
 from Dataset.ChunkTestDataset import ChunkTestDataset
 from Dataset.ChunkEmbededDataset import ChunkEmbededDataset
+from Dataset.ChunkEmbededTestDataset import ChunkEmbededTestDataset
 
 from DataloaderBuilderChunk import DataloaderBuilderChunk
 from Model.HW2Model import HW2Model
@@ -12,6 +13,8 @@ from Model.HW2Q1Model import HW2Q1Model
 from Model.HW2Q2Model import HW2Q2Model
 from Model.HW2Q31Model import HW2Q31Model
 from Model.HW2Q32ResnetModel import HW2Q32ResnetModel
+from Model.HW2Q33ResnetPlusEmbedModel import HW2Q33ResnetPlusEmbedModel
+
 from Trainer import Trainer
 from enum import Enum,unique
 import torch
@@ -105,7 +108,10 @@ class AppController():
             chunk_sec = self.preprocessor.chunk_sec
             print(f"use spec chunk {chunk_sec} dataset & embeded dataset")
             dataset_train = ChunkEmbededDataset(f'{self.data_path}/spec_chunk{chunk_sec}/train',self.preprocessor.genres_dict)
-            k,l = dataset_train[0]
+            dataset_test = ChunkEmbededTestDataset(f'{self.data_path}/spec_chunk{chunk_sec}/test',self.preprocessor.genres_dict)
+            dataloader_builder = DataloaderBuilderChunk(dataset_train,dataset_test,self.batch_size)
+            loader_train,loader_valid,loader_test = dataloader_builder.get_data_loader()
+            self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=loader_train,valid_dataloader=loader_valid,test_dataloader=loader_test,num_input=2,chunk=True)
             print("debug")
             
             
@@ -117,8 +123,8 @@ class AppController():
         loader_test = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=num_workers, drop_last=False)
         return loader_train,loader_valid,loader_test
         
-    def train(self,model,train_dataloader,valid_dataloader,test_dataloader,chunk=False):
-        trainer = Trainer(model=model, device=self.device)
+    def train(self,model,train_dataloader,valid_dataloader,test_dataloader,num_input = 1,chunk=False):
+        trainer = Trainer(model=model, device=self.device,num_input=num_input)
         trainer.set_dataloader(train=train_dataloader,valid=valid_dataloader,test=test_dataloader)
         trainer.fit(chunk=chunk)
 

@@ -15,7 +15,7 @@ class ChunkEmbededDataset(dataset.Dataset):
         file_name = (self.file_list[i].split('/')[-1]).split('_')[0]
         embeded_file_path = './gtzan/embed/'+feature_genre_dict["genre"]+"/"+file_name+".npy"
         embeded = np.load(embeded_file_path)
-        return np.array([feature_genre_dict["feature"],embeded]), self.genre_dict[feature_genre_dict["genre"]]
+        return {"spec":feature_genre_dict["feature"],"embed":embeded}, self.genre_dict[feature_genre_dict["genre"]]
     
     def __len__(self):
         return len(self.file_list)

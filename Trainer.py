@@ -12,7 +12,8 @@ class TrainState(Enum):
     TEST = 2
 
 class Trainer():
-    def __init__(self,model,device,lr = 0.0006,momentum=0.9,total_epoch = 12, weight_decay = 0.0):
+    def __init__(self,model,device,num_input = 1,lr = 0.0006,momentum=0.9,total_epoch = 12, weight_decay = 0.0):
+        self.num_input = num_input
         self.lr = lr
         self.momentum = momentum
         self.current_epoch = 0
@@ -79,10 +80,14 @@ class Trainer():
         pbar = tqdm(dataloader, desc=desc_message)
         num_data = 0
         for input,label in pbar:
-            input = input.to(self.device)
             label = label.to(self.device)
-
-            prediction = self.models["hw2Model"](input)
+            if self.num_input == 1:
+                input = input.to(self.device)
+                prediction = self.models["hw2Model"](input)
+            else:
+                input_1 = input["spec"].to(self.device)
+                input_2 = input["embed"].to(self.device)
+                prediction = self.models["hw2Model"](input_1,input_2)
             loss = self.criterion(prediction,label)
             acc = self.accuracy(prediction,label)
 
@@ -113,10 +118,18 @@ class Trainer():
         total_num_data = len(dataloader)
         correct_num = 0
         for input,label in dataloader:
-            input = input.view(input.shape[1],input.shape[2],input.shape[3])
-            input = input.to(self.device)
+            if self.num_input == 1:
+                input = input.view(input.shape[1],input.shape[2],input.shape[3])
+                input = input.to(self.device)
+                prediction = self.models["hw2Model"](input)
+            else:
+                input_1 = input["spec"].view(input["spec"].shape[1],input["spec"].shape[2],input["spec"].shape[3])
+                input_2 = input["embed"].view(input["embed"].shape[1],input["embed"].shape[2])
+                input_1 = input_1.to(self.device)
+                input_2 = input_2.to(self.device)
+                prediction = self.models["hw2Model"](input_1,input_2)
+                
             label = label.to(self.device)
-            prediction = self.models["hw2Model"](input)
             prediction = prediction.max(1)[1].long().cpu()
             prediction = prediction.numpy()
             count = np.bincount(prediction)

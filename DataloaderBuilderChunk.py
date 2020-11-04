@@ -3,12 +3,11 @@ import math
 from torch.utils.data import DataLoader, Dataset, SubsetRandomSampler
 
 class DataloaderBuilderChunk():
-    def __init__(self,train_dset:Dataset,test_dset:Dataset,batch_size,num_workers=1,valid_ration=0.1,num_chunk_per_test_data=6):
+    def __init__(self,train_dset:Dataset,test_dset:Dataset,batch_size,num_workers=1,valid_ration=0.1):
         self.train_dataset = train_dset
         self.test_dataset = test_dset
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.num_chunk_per_test_data = num_chunk_per_test_data
 
         total_train_dset_num = len(train_dset)
         total_train_indicies = list(range(total_train_dset_num))

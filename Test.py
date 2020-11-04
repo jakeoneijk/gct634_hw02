@@ -2,6 +2,8 @@ from Model.HW2Model import HW2Model
 from Model.HW2Q1Model import HW2Q1Model
 from Model.HW2Q31Model import HW2Q31Model
 from Model.HW2Q32ResnetModel import HW2Q32ResnetModel
+from Model.HW2Q33ResnetPlusEmbedModel import HW2Q33ResnetPlusEmbedModel
+
 import torch
 class TestController():
     def __init__(self):
@@ -24,6 +26,10 @@ class TestController():
             print(output.shape)
             print(output)
             print('\n')
+        embed_res_input_1 = torch.randn((self.test_batch_size, 96, 157))
+        embed_res_input_2 = torch.randn((self.test_batch_size, 753))
+        model = HW2Q33ResnetPlusEmbedModel(num_genres=8)
+        model(embed_res_input_1,embed_res_input_2)
 
     def test(self):
         self.model_size_test()

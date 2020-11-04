@@ -85,6 +85,7 @@ class Preprocessing():
         test_dir = self.file_list_path + feature_name +"/test"
         os.makedirs(train_dir, exist_ok=True)
         os.makedirs(test_dir,exist_ok=True)
+        os.makedirs(self.file_list_path + feature_name+"/augmentaion", exist_ok=True)
         self.preprocess_chunk_for_given_path(train=True,save_path=train_dir,musiccnn=musiccnn)
         self.preprocess_chunk_for_given_path(train=False,save_path=test_dir,musiccnn=musiccnn)
     
@@ -97,11 +98,25 @@ class Preprocessing():
                 print(f'pickle data of {file_name} already exists')
                 continue
             print("debug")
-            self.preprocess_chunk_save(train,audio_path=f'{self.file_list_path}/wav/{path_in}',genre=genre,
+            signal, _ = librosa.load(f'{self.file_list_path}/wav/{path_in}',sr=self.sampling_rate)
+            self.preprocess_chunk_save(train,signal,genre=genre,
                                                     save_file_path=os.path.join(save_path,f'{file_name}'),musiccnn=musiccnn)
-    
-    def preprocess_chunk_save(self,train,audio_path,genre:str,save_file_path,musiccnn=False):
-        signal, _ = librosa.load(audio_path,sr=self.sampling_rate)
+            if train == True:
+                noise_signal = self.data_augmentation_noise(signal)
+                shift_signal = self.data_augmentation_shift(signal)
+                stretch_signal = self.data_augmentation_stretch(signal)
+            
+                self.preprocess_chunk_save(train,noise_signal,genre=genre,
+                                                    save_file_path=os.path.join(save_path,f'{file_name}'),musiccnn=musiccnn,
+                                                    data_augmentation=True,data_augmentaion_type="noise")
+                self.preprocess_chunk_save(train,shift_signal,genre=genre,
+                                                    save_file_path=os.path.join(save_path,f'{file_name}'),musiccnn=musiccnn,
+                                                    data_augmentation=True,data_augmentaion_type="shift")
+                self.preprocess_chunk_save(train,stretch_signal,genre=genre,
+                                                    save_file_path=os.path.join(save_path,f'{file_name}'),musiccnn=musiccnn,
+                                                    data_augmentation=True,data_augmentaion_type="stretch")
+                
+    def preprocess_chunk_save(self,train,signal,genre:str,save_file_path,musiccnn=False,data_augmentation=False,data_augmentaion_type=""):
         pickle_idx = 0
         test_feature_array = []
         for start_idx in range(0,len(signal),self.sampling_rate*self.chunk_sec):
@@ -113,6 +128,9 @@ class Preprocessing():
             feature = self.feature_extraction(music_chunk,musiccnn)
             if train == True:
                 save_file_name = save_file_path+f'_{pickle_idx}.pkl'
+                if data_augmentation == True:
+                    dir_array = save_file_path.split("/")
+                    save_file_name = dir_array[0] +"/"+ dir_array[1] +"/"+ dir_array[2]+"/augmentaion/"+ dir_array[4]+"("+data_augmentaion_type+")"+f'_{pickle_idx}.pkl'
                 print(f'Saving: {save_file_name}')
                 with open (save_file_name,'wb') as writing_file:
                     pickle.dump({"feature":feature,"genre":genre},writing_file)
@@ -133,5 +151,16 @@ class Preprocessing():
         melspec = melspec.astype('float32')
         return melspec
         
+    def data_augmentation_noise(self,signal):
+        noise = np.random.randn(len(signal))
+        signal_noise = signal + 0.005 * noise
+        return signal_noise
+    
+    def data_augmentation_shift(self,signal):
+        return np.roll(signal, 1600)
+    
+    def data_augmentation_stretch(self,signal, rate=1):
+        return librosa.effects.time_stretch(signal, rate)
+
 
         
