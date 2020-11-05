@@ -12,7 +12,7 @@ class TrainState(Enum):
     TEST = 2
 
 class Trainer():
-    def __init__(self,model,device,num_input = 1,lr = 0.0006,momentum=0.9,total_epoch = 12, weight_decay = 0.0):
+    def __init__(self,model,device,num_input = 1,lr = 0.0001,momentum=0.9,total_epoch = 10, weight_decay = 0.0):
         self.num_input = num_input
         self.lr = lr
         self.momentum = momentum
@@ -21,7 +21,7 @@ class Trainer():
         self.wight_decay = weight_decay
         self.models = {"hw2Model":model}
         self.criterion = torch.nn.CrossEntropyLoss()
-        self.optimizer = torch.optim.SGD(self.models["hw2Model"].parameters(), lr=lr,momentum=momentum)
+        self.optimizer = torch.optim.Adam(self.models["hw2Model"].parameters(), lr=lr) #torch.optim.SGD(self.models["hw2Model"].parameters(), lr=lr,momentum=momentum)
         self.device = device
         self.models["hw2Model"].to(self.device)
         self.criterion.to(self.device)
@@ -105,7 +105,8 @@ class Trainer():
         return (epoch_loss / num_data),(epoch_acc / num_data)
 
     def save_best_model(self, current_loss, current_accu):
-        if current_loss < self.best_model_loss and current_accu > self.best_model_accu:
+        #if current_loss < self.best_model_loss and current_accu > self.best_model_accu:
+        if current_accu > self.best_model_accu:
             print("save current best model")
             self.best_model_epoch = self.current_epoch
             self.best_model_loss = current_loss
@@ -137,6 +138,21 @@ class Trainer():
             if label[0] == prediction_label:
                 correct_num += 1
         return correct_num/total_num_data
+
+    def only_test(self,model_path,dataloader,chunk,message=""):
+        print("\n=======================================\n")
+        print(message)
+        best_model_load = torch.load(model_path)
+        self.models["hw2Model"].load_state_dict(best_model_load)
+
+        if chunk == True:
+            with torch.no_grad():
+                test_acc = self.test_by_chunk(dataloader,TrainState.TEST)
+        else:
+            with torch.no_grad():
+                _,test_acc = self.run_epoch(dataloader,TrainState.TEST)
+        print(f'{self.models["hw2Model"].__class__.__name__}: test_acc={test_acc * 100:.2f}%')
+
 
 
 

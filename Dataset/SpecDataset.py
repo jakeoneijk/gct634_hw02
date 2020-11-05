@@ -2,7 +2,7 @@ from torch.utils.data import Dataset
 import numpy as np
 
 class SpecDataset(Dataset):
-    def __init__(self, paths:str, genre_dict:dict, mean:int = 0, std:int = 1, time_dim_size = None):
+    def __init__(self, paths, genre_dict:dict, mean:int = 0, std:int = 1, time_dim_size = None):
         self.paths = paths
         self.genre_dict = genre_dict
         self.mean = mean

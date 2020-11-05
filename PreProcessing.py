@@ -42,7 +42,7 @@ class Preprocessing():
                 print(f'{path_out} already exists')
                 continue
             if musiccnn:
-                _, _, embeds = extractor(f'{self.file_list_path}/wav/{path_in}', model='MTT_musicnn', extract_features=True)
+                _, _, embeds = extractor(f'{self.file_list_path}/wav/{path_in}', model='MSD_musicnn', extract_features=True)
                 embed = embeds['max_pool'].mean(axis=0)
                 np.save(path_out, embed)
             else:

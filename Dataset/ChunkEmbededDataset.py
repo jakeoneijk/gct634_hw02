@@ -4,8 +4,8 @@ import pickle
 import numpy as np
 
 class ChunkEmbededDataset(dataset.Dataset):
-    def __init__(self,data_root,genre_dict:dict):
-        self.file_list = [os.path.join(data_root,f_name) for f_name in os.listdir(data_root)]
+    def __init__(self,file_list,genre_dict:dict):
+        self.file_list = file_list
         self.genre_dict = genre_dict
     
     def __getitem__(self,i):

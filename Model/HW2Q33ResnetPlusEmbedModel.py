@@ -23,9 +23,14 @@ class HW2Q33ResnetPlusEmbedModel(nn.Module):
             nn.MaxPool2d(kernel_size=(1,2)),
             nn.Dropout(p=0.5),
         )
-        self.linear_1 = nn.Sequential(torch.nn.Linear(753,64),
+        self.linear_1 = nn.Sequential(nn.Linear(256, 32),
+                                        nn.BatchNorm1d(32),
+                                        nn.ReLU())
+        self.linear_2 = nn.Sequential(torch.nn.Linear(753,32),
+                                    torch.nn.BatchNorm1d(32),
                                     torch.nn.ReLU())
-        self.linear_2 = nn.Linear(320, num_genres)
+        self.linear_3 = nn.Linear(64,num_genres)
+        
     
     def forward(self,x,y):
         x = x.unsqueeze(dim=1)
@@ -35,8 +40,8 @@ class HW2Q33ResnetPlusEmbedModel(nn.Module):
         x = self.res_block3(x)
         x = self.pool_block(x)
         x = x.view(x.shape[0],-1)
-
-        y = self.linear_1(y)
+        x = self.linear_1(x)
+        y = self.linear_2(y)
         x = torch.cat((x,y),1)
-        x = self.linear_2(x)
+        x = self.linear_3(x)
         return x
