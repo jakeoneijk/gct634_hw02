@@ -92,8 +92,8 @@ class AppController():
         
         elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.3):
             print("chunk +pretrain")
-            test_acc_chunk, confusion_matrix_chunk =self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed"]["train"],valid_dataloader=self.dataloaders["chunk_embed"]["valid"],test_dataloader=self.dataloaders["chunk_embed"]["test"],chunk=True)
-            test_acc_chunk_augment, confusion_matrix_chunk_augment =self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed_augment"]["train"],valid_dataloader=self.dataloaders["chunk_embed_augment"]["valid"],test_dataloader=self.dataloaders["chunk_embed_augment"]["test"],chunk=True)
+            test_acc_chunk, confusion_matrix_chunk =self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed"]["train"],valid_dataloader=self.dataloaders["chunk_embed"]["valid"],test_dataloader=self.dataloaders["chunk_embed"]["test"],num_input=2,chunk=True)
+            test_acc_chunk_augment, confusion_matrix_chunk_augment =self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed_augment"]["train"],valid_dataloader=self.dataloaders["chunk_embed_augment"]["valid"],test_dataloader=self.dataloaders["chunk_embed_augment"]["test"],num_input=2,chunk=True)
             self.result_print(model_name="Resnet+pretrain",test_acc=test_acc_chunk,confusinon_matrix=confusion_matrix_chunk,dataset="chunk")
             self.result_print(model_name="Resnet+pretrain",test_acc=test_acc_chunk_augment,confusinon_matrix=confusion_matrix_chunk_augment,dataset="chunk & augment")
                
