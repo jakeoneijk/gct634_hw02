@@ -92,8 +92,8 @@ class AppController():
         
         elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.3):
             print("chunk +pretrain")
-            test_acc_chunk, confusion_matrix_chunk =self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed"]["train"],valid_dataloader=self.dataloaders["chunk_embed"]["valid"],test_dataloader=self.dataloaders["chunk_embed"]["test"],num_input=2,chunk=True)
-            test_acc_chunk_augment, confusion_matrix_chunk_augment =self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed_augment"]["train"],valid_dataloader=self.dataloaders["chunk_embed_augment"]["valid"],test_dataloader=self.dataloaders["chunk_embed_augment"]["test"],num_input=2,chunk=True)
+            test_acc_chunk, confusion_matrix_chunk =self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed"]["train"],valid_dataloader=self.dataloaders["chunk_embed"]["valid"],test_dataloader=self.dataloaders["chunk_embed"]["test"],num_input=2,chunk=True,model_save_name="_chunk")
+            test_acc_chunk_augment, confusion_matrix_chunk_augment =self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed_augment"]["train"],valid_dataloader=self.dataloaders["chunk_embed_augment"]["valid"],test_dataloader=self.dataloaders["chunk_embed_augment"]["test"],num_input=2,chunk=True,model_save_name="_chunk_augment")
             self.result_print(model_name="Resnet+pretrain",test_acc=test_acc_chunk,confusinon_matrix=confusion_matrix_chunk,dataset="chunk")
             self.result_print(model_name="Resnet+pretrain",test_acc=test_acc_chunk_augment,confusinon_matrix=confusion_matrix_chunk_augment,dataset="chunk & augment")
                
@@ -168,8 +168,8 @@ class AppController():
         loader_test = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=num_workers, drop_last=False)
         return loader_train,loader_valid,loader_test
         
-    def train(self,model,train_dataloader,valid_dataloader,test_dataloader,num_input = 1,chunk=False):
-        trainer = Trainer(model=model, device=self.device,num_input=num_input)
+    def train(self,model,train_dataloader,valid_dataloader,test_dataloader,num_input = 1,chunk=False,model_save_name=""):
+        trainer = Trainer(model=model, device=self.device,num_input=num_input,model_save_name=model_save_name)
         trainer.set_dataloader(train=train_dataloader,valid=valid_dataloader,test=test_dataloader)
         return trainer.fit(chunk=chunk)
     

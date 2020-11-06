@@ -13,7 +13,7 @@ class TrainState(Enum):
     TEST = 2
 
 class Trainer():
-    def __init__(self,model,device,num_input = 1,lr = 0.0001,momentum=0.9,total_epoch = 10, weight_decay = 0.0):
+    def __init__(self,model,device,num_input = 1,lr = 0.0001,momentum=0.9,total_epoch = 10, weight_decay = 0.0,model_save_name=""):
         self.num_input = num_input
         self.lr = lr
         self.momentum = momentum
@@ -31,7 +31,7 @@ class Trainer():
         self.dataloader_train = None
         self.dataloader_valid = None
         self.dataloader_test = None
-        self.model_save_path = f'./ModelSave/best_{self.models["hw2Model"].__class__.__name__}.pth'
+        self.model_save_path = f'./ModelSave/best_{self.models["hw2Model"].__class__.__name__}{model_save_name}.pth'
         self.best_model_epoch = 0
         self.best_model_loss = 5000
         self.best_model_accu = 0

@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from .ResNet import ResNet
+from .InitializeMethod import InitializeMethod
 
 class HW2Q33ResnetPlusEmbedModel(nn.Module):
     def __init__(self,num_genres,leaky_relu_slope=0.01):
@@ -30,6 +31,8 @@ class HW2Q33ResnetPlusEmbedModel(nn.Module):
                                     torch.nn.BatchNorm1d(32),
                                     torch.nn.ReLU())
         self.linear_3 = nn.Linear(64,num_genres)
+
+        self.apply(InitializeMethod().init_weights)
         
     
     def forward(self,x,y):
