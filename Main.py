@@ -14,8 +14,10 @@ from Model.HW2Model import HW2Model
 from Model.HW2Q1Model import HW2Q1Model
 from Model.HW2Q2Model import HW2Q2Model
 from Model.HW2Q31Model import HW2Q31Model
+from Model.HW2Q3Conv2d import HW2Q3Conv2d
 from Model.HW2Q32ResnetModel import HW2Q32ResnetModel
 from Model.HW2Q33ResnetPlusEmbedModel import HW2Q33ResnetPlusEmbedModel
+from Model.HW2Q3Conv2dEmbed import HW2Q3Conv2dEmbed
 
 from Trainer import Trainer
 from enum import Enum,unique
@@ -84,13 +86,25 @@ class AppController():
             print("debug")
         
         elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.2):
+            test_acc_chunk, confusion_matrix_chunk = self.train(model=HW2Q3Conv2d(), train_dataloader=self.dataloaders["chunk"]["train"],valid_dataloader=self.dataloaders["chunk"]["valid"],test_dataloader=self.dataloaders["chunk"]["test"],chunk=True,model_save_name="_chunk")
+            test_acc_chunk_augment, confusion_matrix_chunk_augment = self.train(model=HW2Q3Conv2d(), train_dataloader=self.dataloaders["chunk_augment"]["train"],valid_dataloader=self.dataloaders["chunk_augment"]["valid"],test_dataloader=self.dataloaders["chunk_augment"]["test"],chunk=True,model_save_name="_chunk_augment")
+            self.result_print(model_name="conv2d",test_acc=test_acc_chunk,confusinon_matrix=confusion_matrix_chunk,dataset="chunk")
+            self.result_print(model_name="conv2d",test_acc=test_acc_chunk_augment,confusinon_matrix=confusion_matrix_chunk_augment,dataset="chunk & augment")
+        
+        elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.3):
+            test_acc_chunk, confusion_matrix_chunk =self.train(model=HW2Q3Conv2dEmbed(), train_dataloader=self.dataloaders["chunk_embed"]["train"],valid_dataloader=self.dataloaders["chunk_embed"]["valid"],test_dataloader=self.dataloaders["chunk_embed"]["test"],num_input=2,chunk=True,model_save_name="_chunk")
+            test_acc_chunk_augment, confusion_matrix_chunk_augment =self.train(model=HW2Q3Conv2dEmbed(), train_dataloader=self.dataloaders["chunk_embed_augment"]["train"],valid_dataloader=self.dataloaders["chunk_embed_augment"]["valid"],test_dataloader=self.dataloaders["chunk_embed_augment"]["test"],num_input=2,chunk=True,model_save_name="_chunk_augment")
+            self.result_print(model_name="conv2d+pretrain",test_acc=test_acc_chunk,confusinon_matrix=confusion_matrix_chunk,dataset="chunk")
+            self.result_print(model_name="conv2d+pretrain",test_acc=test_acc_chunk_augment,confusinon_matrix=confusion_matrix_chunk_augment,dataset="chunk & augment")
+
+        elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.4):
             print("use chunk and resnet")
-            test_acc_chunk, confusion_matrix_chunk = self.train(model=HW2Q32ResnetModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk"]["train"],valid_dataloader=self.dataloaders["chunk"]["valid"],test_dataloader=self.dataloaders["chunk"]["test"],chunk=True)
-            test_acc_chunk_augment, confusion_matrix_chunk_augment = self.train(model=HW2Q32ResnetModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_augment"]["train"],valid_dataloader=self.dataloaders["chunk_augment"]["valid"],test_dataloader=self.dataloaders["chunk_augment"]["test"],chunk=True)
+            test_acc_chunk, confusion_matrix_chunk = self.train(model=HW2Q32ResnetModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk"]["train"],valid_dataloader=self.dataloaders["chunk"]["valid"],test_dataloader=self.dataloaders["chunk"]["test"],chunk=True,model_save_name="_chunk")
+            test_acc_chunk_augment, confusion_matrix_chunk_augment = self.train(model=HW2Q32ResnetModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_augment"]["train"],valid_dataloader=self.dataloaders["chunk_augment"]["valid"],test_dataloader=self.dataloaders["chunk_augment"]["test"],chunk=True,model_save_name="_chunk_augment")
             self.result_print(model_name="Resnet",test_acc=test_acc_chunk,confusinon_matrix=confusion_matrix_chunk,dataset="chunk")
             self.result_print(model_name="Resnet",test_acc=test_acc_chunk_augment,confusinon_matrix=confusion_matrix_chunk_augment,dataset="chunk & augment")
         
-        elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.3):
+        elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.5):
             print("chunk +pretrain")
             test_acc_chunk, confusion_matrix_chunk =self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed"]["train"],valid_dataloader=self.dataloaders["chunk_embed"]["valid"],test_dataloader=self.dataloaders["chunk_embed"]["test"],num_input=2,chunk=True,model_save_name="_chunk")
             test_acc_chunk_augment, confusion_matrix_chunk_augment =self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed_augment"]["train"],valid_dataloader=self.dataloaders["chunk_embed_augment"]["valid"],test_dataloader=self.dataloaders["chunk_embed_augment"]["test"],num_input=2,chunk=True,model_save_name="_chunk_augment")
