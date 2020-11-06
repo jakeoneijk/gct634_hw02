@@ -4,7 +4,7 @@ import torch
 from tqdm import tqdm
 import os
 import numpy as np
-import sklearn
+from sklearn.metrics import confusion_matrix
 
 @unique
 class TrainState(Enum):
@@ -71,7 +71,7 @@ class Trainer():
             with torch.no_grad():
                 _,test_acc = self.run_epoch(self.dataloader_test,TrainState.TEST)
         print(f'{self.models["hw2Model"].__class__.__name__}: test_acc={test_acc * 100:.2f}%')
-        return test_acc, sklearn.metrics.confusion_matrix(self.y_array,self.y_pred_array)
+        return test_acc, confusion_matrix(self.y_array,self.y_pred_array)
 
     def run_epoch(self, dataloader: DataLoader, train_state:TrainState):
         if train_state == TrainState.TRAIN:
@@ -142,8 +142,8 @@ class Trainer():
             count = np.bincount(prediction)
             prediction_label = count.argmax()
 
-            self.y_array.append(label[0])
-            self.y_pred_array.append(prediction_label)
+            self.y_array.append(label[0].item())
+            self.y_pred_array.append(prediction_label.item())
 
             if label[0] == prediction_label:
                 correct_num += 1
