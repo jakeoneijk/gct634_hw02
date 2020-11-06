@@ -4,6 +4,7 @@ import torch
 from tqdm import tqdm
 import os
 import numpy as np
+import sklearn
 
 @unique
 class TrainState(Enum):
@@ -34,6 +35,8 @@ class Trainer():
         self.best_model_epoch = 0
         self.best_model_loss = 5000
         self.best_model_accu = 0
+        self.y_array = []
+        self.y_pred_array = []
 
     def set_dataloader(self,train,valid,test):
         self.dataloader_train = train
@@ -47,6 +50,8 @@ class Trainer():
         return correct / float(source.shape[0])
 
     def fit(self,chunk=False):
+        self.y_array = []
+        self.y_pred_array = []
         print("\n===================train start===================")
         print(f'==================={self.models["hw2Model"].__class__.__name__}===================')
         for _ in range(self.current_epoch,self.total_epoch):
@@ -66,6 +71,7 @@ class Trainer():
             with torch.no_grad():
                 _,test_acc = self.run_epoch(self.dataloader_test,TrainState.TEST)
         print(f'{self.models["hw2Model"].__class__.__name__}: test_acc={test_acc * 100:.2f}%')
+        return test_acc, sklearn.metrics.confusion_matrix(self.y_array,self.y_pred_array)
 
     def run_epoch(self, dataloader: DataLoader, train_state:TrainState):
         if train_state == TrainState.TRAIN:
@@ -135,6 +141,10 @@ class Trainer():
             prediction = prediction.numpy()
             count = np.bincount(prediction)
             prediction_label = count.argmax()
+
+            self.y_array.append(label[0])
+            self.y_pred_array.append(prediction_label)
+
             if label[0] == prediction_label:
                 correct_num += 1
         return correct_num/total_num_data

@@ -85,23 +85,18 @@ class AppController():
         
         elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.2):
             print("use chunk and resnet")
-            self.train(model=HW2Q32ResnetModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk"]["train"],valid_dataloader=self.dataloaders["chunk"]["valid"],test_dataloader=self.dataloaders["chunk"]["test"],chunk=True)
-            print("debug")
+            test_acc_chunk, confusion_matrix_chunk = self.train(model=HW2Q32ResnetModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk"]["train"],valid_dataloader=self.dataloaders["chunk"]["valid"],test_dataloader=self.dataloaders["chunk"]["test"],chunk=True)
+            test_acc_chunk_augment, confusion_matrix_chunk_augment = self.train(model=HW2Q32ResnetModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_augment"]["train"],valid_dataloader=self.dataloaders["chunk_augment"]["valid"],test_dataloader=self.dataloaders["chunk_augment"]["test"],chunk=True)
+            self.result_print(model_name="Resnet",test_acc=test_acc_chunk,confusinon_matrix=confusion_matrix_chunk,dataset="chunk")
+            self.result_print(model_name="Resnet",test_acc=test_acc_chunk_augment,confusinon_matrix=confusion_matrix_chunk_augment,dataset="chunk & augment")
         
         elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.3):
-            print("chunk embed")
-            self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed"]["train"],valid_dataloader=self.dataloaders["chunk_embed"]["valid"],test_dataloader=self.dataloaders["chunk_embed"]["test"],chunk=True)
-            print("debug")
-        
-        elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.4):
-            print("chunk_embed_augment")
-            self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed_augment"]["train"],valid_dataloader=self.dataloaders["chunk_embed_augment"]["valid"],test_dataloader=self.dataloaders["chunk_embed_augment"]["test"],chunk=True)
-            print("debug")
-        
-        elif self.app_mode == AppMode.TRAIN.value and (self.question_num==3.5):
-            self.train(model=HW2Q32ResnetModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_augment"]["train"],valid_dataloader=self.dataloaders["chunk_augment"]["valid"],test_dataloader=self.dataloaders["chunk_augment"]["test"],chunk=True)
-            print("debug")
-        
+            print("chunk +pretrain")
+            test_acc_chunk, confusion_matrix_chunk =self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed"]["train"],valid_dataloader=self.dataloaders["chunk_embed"]["valid"],test_dataloader=self.dataloaders["chunk_embed"]["test"],chunk=True)
+            test_acc_chunk_augment, confusion_matrix_chunk_augment =self.train(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), train_dataloader=self.dataloaders["chunk_embed_augment"]["train"],valid_dataloader=self.dataloaders["chunk_embed_augment"]["valid"],test_dataloader=self.dataloaders["chunk_embed_augment"]["test"],chunk=True)
+            self.result_print(model_name="Resnet+pretrain",test_acc=test_acc_chunk,confusinon_matrix=confusion_matrix_chunk,dataset="chunk")
+            self.result_print(model_name="Resnet+pretrain",test_acc=test_acc_chunk_augment,confusinon_matrix=confusion_matrix_chunk_augment,dataset="chunk & augment")
+               
         elif self.app_mode == AppMode.TEST.value:
             trainer = Trainer(model=HW2Q33ResnetPlusEmbedModel(len(self.preprocessor.genres)), device=self.device,num_input=2)
             trainer.only_test("./best_models/HW2Q33ResnetPlusEmbedModel_augmentation.pth",self.dataloaders["chunk_embed"]["test"] ,chunk=True,message="HW2Q33ResnetPlusEmbedModel, use data augmentation, use chunk")
@@ -176,7 +171,16 @@ class AppController():
     def train(self,model,train_dataloader,valid_dataloader,test_dataloader,num_input = 1,chunk=False):
         trainer = Trainer(model=model, device=self.device,num_input=num_input)
         trainer.set_dataloader(train=train_dataloader,valid=valid_dataloader,test=test_dataloader)
-        trainer.fit(chunk=chunk)
+        return trainer.fit(chunk=chunk)
+    
+    def result_print(self,model_name,test_acc,confusinon_matrix,dataset:str):
+        print("\n========================================================\n")
+        print(f"Model Name: {model_name}")
+        print(f"Dataset: {dataset}")
+        print(f"Test acc: {test_acc}")
+        print("Confusion Matrix")
+        print(confusinon_matrix)
+        print("\n========================================================\n")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='hw2 parser')
