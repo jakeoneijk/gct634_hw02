@@ -3,7 +3,7 @@ import math
 from torch.utils.data import DataLoader, Dataset, SubsetRandomSampler
 
 class DataloaderBuilderChunk():
-    def __init__(self,train_dset:Dataset,valid_dset:Dataset,test_dset:Dataset,batch_size,num_workers=0):
+    def __init__(self,train_dset:Dataset,valid_dset:Dataset,test_dset:Dataset,batch_size,num_workers=1):
         self.train_dataset = train_dset
         self.valid_dataset = valid_dset
         self.test_dataset = test_dset

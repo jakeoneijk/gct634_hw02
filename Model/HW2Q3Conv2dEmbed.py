@@ -1,7 +1,5 @@
-import torch.nn as nn
 import torch
-from .InitializeMethod import InitializeMethod
-
+import torch.nn as nn
 class HW2Q3Conv2dEmbed(nn.Module):
     def __init__(self):
         super(HW2Q3Conv2dEmbed,self).__init__()
@@ -36,22 +34,17 @@ class HW2Q3Conv2dEmbed(nn.Module):
             nn.MaxPool2d(kernel_size=4)
         )
         self.final_pool = nn.AdaptiveAvgPool2d(1)
-        self.linear = nn.Sequential(
-            nn.Linear(1024,64),
-            nn.BatchNorm1d(64),
-            nn.ReLU(),
-            nn.Linear(64,32),
+
+        self.linear_1 = nn.Sequential(
+            nn.Linear(1024,32),
             nn.BatchNorm1d(32),
             nn.ReLU()
         )
         self.linear_2 = nn.Sequential(
             nn.Linear(753,32),
             nn.BatchNorm1d(32),
-            nn.ReLU()
-        )
+            nn.ReLU())
         self.linear_3 = nn.Linear(64,8)
-        
-        self.apply(InitializeMethod().init_weights)
     
     def forward(self,x,y):
         x = x.unsqueeze(dim=1)
@@ -61,8 +54,8 @@ class HW2Q3Conv2dEmbed(nn.Module):
         x = self.conv_4(x)
         x = self.conv_5(x)
         x = self.final_pool(x)
-        x = x.view(x.shape[0],-1)
-        x = self.linear(x)
+        x = self.linear_1(x.view(x.shape[0],-1))
         y = self.linear_2(y)
-        x_y = torch.cat((x,y),1)
-        return self.linear_3(x_y)
+        final = torch.cat((x,y),1) 
+        final = self.linear_3(final)
+        return final

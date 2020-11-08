@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
-class HW2Q3Conv2d(nn.Module):
+class HW2Q3Conv2dChunk(nn.Module):
     def __init__(self):
-        super(HW2Q3Conv2d,self).__init__()
+        super(HW2Q3Conv2dChunk,self).__init__()
         self.conv_1 = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64),

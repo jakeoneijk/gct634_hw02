@@ -162,6 +162,7 @@ class Trainer():
             with torch.no_grad():
                 _,test_acc = self.run_epoch(dataloader,TrainState.TEST)
         print(f'{self.models["hw2Model"].__class__.__name__}: test_acc={test_acc * 100:.2f}%')
+        return test_acc, confusion_matrix(self.y_array,self.y_pred_array)
 
 
 

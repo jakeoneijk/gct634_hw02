@@ -1,8 +1,10 @@
-import torch
 import torch.nn as nn
-class HW2Q3Conv2d(nn.Module):
+import torch
+from .InitializeMethod import InitializeMethod
+
+class HW2Q3Conv2dChunkEmbed(nn.Module):
     def __init__(self):
-        super(HW2Q3Conv2d,self).__init__()
+        super(HW2Q3Conv2dChunkEmbed,self).__init__()
         self.conv_1 = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64),
@@ -38,10 +40,20 @@ class HW2Q3Conv2d(nn.Module):
             nn.Linear(1024,64),
             nn.BatchNorm1d(64),
             nn.ReLU(),
-            nn.Linear(64,8)
+            nn.Linear(64,32),
+            nn.BatchNorm1d(32),
+            nn.ReLU()
         )
+        self.linear_2 = nn.Sequential(
+            nn.Linear(753,32),
+            nn.BatchNorm1d(32),
+            nn.ReLU()
+        )
+        self.linear_3 = nn.Linear(64,8)
+        
+        self.apply(InitializeMethod().init_weights)
     
-    def forward(self,x):
+    def forward(self,x,y):
         x = x.unsqueeze(dim=1)
         x = self.conv_1(x)
         x = self.conv_2(x)
@@ -51,4 +63,6 @@ class HW2Q3Conv2d(nn.Module):
         x = self.final_pool(x)
         x = x.view(x.shape[0],-1)
         x = self.linear(x)
-        return x
+        y = self.linear_2(y)
+        x_y = torch.cat((x,y),1)
+        return self.linear_3(x_y)

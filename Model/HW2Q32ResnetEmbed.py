@@ -3,9 +3,9 @@ from torch import nn
 from .ResNet import ResNet
 from .InitializeMethod import InitializeMethod
 
-class HW2Q33ResnetPlusEmbedModel(nn.Module):
-    def __init__(self,num_genres,leaky_relu_slope=0.01):
-        super(HW2Q33ResnetPlusEmbedModel,self).__init__()
+class HW2Q32ResnetEmbed(nn.Module):
+    def __init__(self,num_genres=8,leaky_relu_slope=0.01):
+        super(HW2Q32ResnetEmbed,self).__init__()
         self.conv_block = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, padding=1,
             bias=False),
@@ -24,7 +24,7 @@ class HW2Q33ResnetPlusEmbedModel(nn.Module):
             nn.MaxPool2d(kernel_size=(1,2)),
             nn.Dropout(p=0.5),
         )
-        self.linear_1 = nn.Sequential(nn.Linear(256, 32),
+        self.linear_1 = nn.Sequential(nn.Linear(1792, 32),
                                         nn.BatchNorm1d(32),
                                         nn.ReLU())
         self.linear_2 = nn.Sequential(torch.nn.Linear(753,32),
@@ -33,7 +33,6 @@ class HW2Q33ResnetPlusEmbedModel(nn.Module):
         self.linear_3 = nn.Linear(64,num_genres)
 
         self.apply(InitializeMethod().init_weights)
-        
     
     def forward(self,x,y):
         x = x.unsqueeze(dim=1)
