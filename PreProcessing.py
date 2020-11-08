@@ -159,7 +159,7 @@ class Preprocessing():
     def data_augmentation_shift(self,signal):
         return np.roll(signal, 1600)
     
-    def data_augmentation_stretch(self,signal, rate=1):
+    def data_augmentation_stretch(self,signal, rate=0.8):
         return librosa.effects.time_stretch(signal, rate)
 
 

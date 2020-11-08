@@ -131,9 +131,10 @@ class AppController():
         self.dataloaders["spec"] = {"train":spec_loader_train,"valid":spec_loader_valid,"test":spec_loader_test}
         
         print("embed dataloader make")
-        embed_dataset_train = EmbedDataset(train_data_path,self.preprocessor.genres_dict)
-        embed_dataset_valid = EmbedDataset(valid_data_path,self.preprocessor.genres_dict)
-        embed_dataset_test = EmbedDataset(test_data_path,self.preprocessor.genres_dict)
+        embed_train_data_path,embed_valid_data_path,embed_test_data_path = self.preprocessor.get_path_list(musiccnn=True)
+        embed_dataset_train = EmbedDataset(embed_train_data_path,self.preprocessor.genres_dict)
+        embed_dataset_valid = EmbedDataset(embed_valid_data_path,self.preprocessor.genres_dict)
+        embed_dataset_test = EmbedDataset(embed_test_data_path,self.preprocessor.genres_dict)
         embed_loader_train,embed_loader_valid,embed_loader_test = self.make_dataloader(embed_dataset_train,embed_dataset_valid,embed_dataset_test)
         self.dataloaders["embed"] = {"train":embed_loader_train,"valid":embed_loader_valid,"test":embed_loader_test}
 
